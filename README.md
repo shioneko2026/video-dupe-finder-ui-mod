@@ -26,23 +26,38 @@ The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptua
 
 ## Features
 
-- **Card-per-group layout** — each duplicate group is a horizontal row of file columns
-- **280px fixed columns** — files side by side, buttons and metadata always level regardless of filename length
-- **Thumbnail preview** — lazy-loaded frame grabs for each file
-- **Color-coded metadata** — matching values highlighted in blue/purple/amber; unique (differing) values in red
-- **Smart Select** — global and per-group dropdown to flag lowest resolution, smallest file, oldest, newest, shortest, longest
-  - Clears previous selection before applying new one
-  - Unselect All button globally and per group
-- **Folder browser** — click Browse to navigate drives and pick folders visually instead of typing paths
-- **Main folder** — first include folder is starred (Main); its files appear as the leftmost column in every group card
-- **Column order** — files in each group sort by include folder order (main = col 1, second = col 2, etc.)
-- **Alphabetical group sort** — groups ordered A to Z by the main folder's filename
-- **Filter by path** — live search to narrow results while scrolling
-- **Safety mode** — deletion requires confirmation by default; Raw Mode skips prompts
-- **Recycle Bin only** — all deletions go to Recycle Bin, no permanent delete
-- **Deleted column greyed out** — deleted files stay visible in the card with an overlay so you know what was removed
-- **Complete and Clear** — removes a group from results without deleting files
-- **Status bar** — live group count, remaining files, reclaimed space
+### Side-by-side comparison that actually works
+
+The original VDF results page is a flat list — you scroll down through rows, mentally piecing together which files belong together. This fork throws that out entirely.
+
+Every duplicate group gets its own **card**. Inside each card, the files sit side-by-side as fixed-width columns — thumbnails, metadata, and action buttons all lined up at the same height. You see every file in a group at once, in one glance, without scrolling or cross-referencing rows.
+
+### Color coding tells you what matters before you even read it
+
+Every metadata value is colored based on whether it matches across the group:
+
+- **Blue / Purple / Amber** — values that are shared (two or more files have the same value)
+- **Red** — values unique to that file (this is where the files differ)
+
+Duration, file size, resolution, format, FPS, bitrate, audio — all color-coded independently. When you open a card, the red values immediately draw your eye to the differences. No mental comparison needed.
+
+### Consistent left-right layout across every group
+
+When you're scanning through dozens of groups, predictability matters. This fork lets you designate a **Main folder** — the first folder you add gets a ★ badge. Its file always appears as the leftmost column in every card. Your second folder is always second, and so on.
+
+Combined with **alphabetical sort by the main folder's filename**, the results page reads like a sorted list you already know — Episode 01, 02, 03... in order, with each episode's files always in the same left-right position. No hunting around to figure out which column is which.
+
+The original VDF has no concept of folder ordering or consistent column position.
+
+### Everything else
+
+- **Folder browser** — pick folders by clicking through drives and directories instead of pasting paths
+- **Smart Select** — auto-flag lowest resolution, smallest file, oldest, newest, shortest, or longest, per group or globally; always clears the previous selection first
+- **Filter by path** — live search to narrow down results
+- **Safety mode** — bulk deletions require confirmation by default; Raw Mode skips the prompts
+- **Recycle Bin only** — nothing is permanently deleted; restore from Windows Recycle Bin if you change your mind
+- **Deleted columns stay visible** — greyed out with an overlay so you can see what was removed before moving on
+- **Complete and Clear** — dismiss a resolved group without deleting anything
 
 ---
 
