@@ -1,10 +1,12 @@
 @page "/"
 @rendermode InteractiveServer
+@using System.IO
 @inject ScanService Scan
 @implements IDisposable
 
 <PageTitle>Scan — Video Duplicate Finder</PageTitle>
 
+<div class="scan-page">
 <h1>Scan</h1>
 
 @if (Scan.State == ScanState.Error) {
@@ -54,23 +56,37 @@
 }
 else {
     <section class="scan-config">
+
+        @* ── INCLUDE PATHS ── *@
         <h2>Include paths</h2>
-        <div class="path-list">
-            @foreach (var path in Scan.Settings.IncludeList.ToList()) {
-                bool valid = Directory.Exists(path);
-                <div class="path-entry">
-                    <span class="path-status @(valid ? "valid" : "invalid")" title="@(valid ? "Accessible" : "Not found or not accessible")">@(valid ? "✓" : "✗")</span>
-                    <span>@path</span>
-                    <button @onclick="() => RemoveInclude(path)">✕</button>
-                </div>
-            }
-        </div>
+        @if (Scan.OrderedIncludeList.Count > 0) {
+            <div class="path-list">
+                @foreach (var (path, idx) in Scan.OrderedIncludeList.Select((p, i) => (p, i))) {
+                    bool valid = Directory.Exists(path);
+                    <div class="path-entry">
+                        @if (idx == 0) {
+                            <span class="folder-badge main-badge" title="Main folder — files from this folder appear leftmost in results">★ Main</span>
+                        } else {
+                            <span class="folder-badge order-badge" title="Folder @(idx + 1) — appears in column @(idx + 1) in results">@(idx + 1)</span>
+                        }
+                        <span class="path-status @(valid ? "valid" : "invalid")" title="@(valid ? "Accessible" : "Path not found or inaccessible")">@(valid ? "✓" : "✗")</span>
+                        <span>@path</span>
+                        <button @onclick="() => RemoveInclude(path)" title="Remove">✕</button>
+                    </div>
+                }
+            </div>
+        }
         <div class="add-path">
-            <input @bind="_newInclude" @bind:event="oninput" @onkeydown="OnIncludeKeyDown"
-                   placeholder="/path/to/scan" class="@PathInputClass(_newInclude)" />
-            <button @onclick="AddInclude" disabled="@string.IsNullOrWhiteSpace(_newInclude)">Add</button>
+            <input value="@_newInclude"
+                   @oninput="e => _newInclude = e.Value?.ToString() ?? string.Empty"
+                   @onkeydown="OnIncludeKeyDown"
+                   placeholder="/path/to/scan"
+                   class="@PathInputClass(_newInclude)" />
+            <button @onclick="() => OpenBrowser(true)" title="Browse for folder">📁 Browse</button>
+            <button @onclick="() => AddInclude()" disabled="@string.IsNullOrWhiteSpace(_newInclude)">Add</button>
         </div>
 
+        @* ── EXCLUDE PATHS ── *@
         <h2>Exclude paths</h2>
         <div class="path-list">
             @foreach (var path in Scan.Settings.BlackList.ToList()) {
@@ -83,18 +99,22 @@ else {
             }
         </div>
         <div class="add-path">
-            <input @bind="_newExclude" @bind:event="oninput" @onkeydown="OnExcludeKeyDown"
+            <input value="@_newExclude"
+                   @oninput="e => _newExclude = e.Value?.ToString() ?? string.Empty"
+                   @onkeydown="OnExcludeKeyDown"
                    placeholder="/path/to/exclude" />
-            <button @onclick="AddExclude" disabled="@string.IsNullOrWhiteSpace(_newExclude)">Add</button>
+            <button @onclick="() => OpenBrowser(false)" title="Browse for folder">📁 Browse</button>
+            <button @onclick="() => AddExclude()" disabled="@string.IsNullOrWhiteSpace(_newExclude)">Add</button>
         </div>
 
+        @* ── ACTIONS ── *@
         <div class="start-row">
             @if (Scan.State == ScanState.Done || Scan.State == ScanState.Aborted || Scan.State == ScanState.Error) {
                 <button @onclick="Scan.Reset">Reset</button>
             }
             <button @onclick="SaveSettings" title="Save current settings to disk">Save settings</button>
             <button class="primary" @onclick="Scan.StartScanAndCompare"
-                    disabled="@(Scan.Settings.IncludeList.Count == 0)">
+                    disabled="@(Scan.OrderedIncludeList.Count == 0)">
                 Start Scan
             </button>
         </div>
@@ -108,7 +128,62 @@ else {
         @if (Scan.State == ScanState.Aborted) {
             <p class="aborted-msg">Scan was stopped.</p>
         }
+
     </section>
+}
+</div>
+
+@* ── FOLDER BROWSER MODAL ── *@
+@if (_browserOpen) {
+    <div class="folder-browser-overlay" @onclick="() => _browserOpen = false">
+        <div class="folder-browser" @onclick:stopPropagation="true">
+
+            <div class="folder-browser-header">
+                <span class="folder-browser-title">
+                    📁 @(_browserForInclude ? "Add Include Folder" : "Add Exclude Folder")
+                </span>
+                <button class="btn-sm" @onclick="() => _browserOpen = false">✕</button>
+            </div>
+
+            <div class="folder-browser-nav">
+                <button class="btn-sm" @onclick="BrowseUp" disabled="@(_browserCurrentPath == null)">◀ Up</button>
+                <span class="folder-browser-navpath">@(_browserCurrentPath ?? "Drives")</span>
+            </div>
+
+            <div class="folder-browser-list">
+                @if (_browserError != null) {
+                    <div class="folder-browser-error">⚠ @_browserError</div>
+                }
+                @foreach (var dir in _browserItems) {
+                    var d = dir; // capture for lambda
+                    string label = Path.GetFileName(d) is { Length: > 0 } n ? n : d;
+                    <div class="folder-browser-item" @onclick="() => BrowseTo(d)">
+                        <span>📁</span>
+                        <span class="folder-browser-item-name">@label</span>
+                        <span class="folder-browser-item-arrow">›</span>
+                    </div>
+                }
+                @if (!_browserItems.Any() && _browserError == null) {
+                    <div class="folder-browser-empty">No subfolders</div>
+                }
+            </div>
+
+            <div class="folder-browser-footer">
+                <span class="browser-current-path">
+                    @if (_browserCurrentPath != null) {
+                        @_browserCurrentPath
+                    } else {
+                        <span style="color:#9ca3af">Navigate into a folder, then click Select</span>
+                    }
+                </span>
+                <button class="primary" @onclick="SelectBrowserFolder"
+                        disabled="@(_browserCurrentPath == null)">
+                    ✓ Select This Folder
+                </button>
+            </div>
+
+        </div>
+    </div>
 }
 
 @code {
@@ -116,6 +191,13 @@ else {
     string _newExclude = string.Empty;
     string? _saveMsg;
     bool _saveFailed;
+
+    // ── Folder browser state
+    bool _browserOpen;
+    bool _browserForInclude;
+    string? _browserCurrentPath;
+    List<string> _browserItems = new();
+    string? _browserError;
 
     protected override void OnInitialized() =>
         Scan.StateChanged += OnStateChanged;
@@ -125,39 +207,89 @@ else {
         catch { }
     }
 
-    void AddInclude() {
-        var path = _newInclude.Trim();
-        if (!string.IsNullOrEmpty(path)) {
-            Scan.Settings.IncludeList.Add(path);
-            _newInclude = string.Empty;
-        }
+    // ── Include list management (syncs both OrderedIncludeList and HashSet)
+    void AddInclude(string? rawPath = null) {
+        var path = (rawPath ?? _newInclude).Trim().TrimEnd('\\', '/');
+        if (string.IsNullOrEmpty(path)) return;
+        if (Scan.OrderedIncludeList.Contains(path, StringComparer.OrdinalIgnoreCase)) return;
+        Scan.OrderedIncludeList.Add(path);
+        Scan.Settings.IncludeList.Add(path);
+        _newInclude = string.Empty;
     }
 
     void RemoveInclude(string path) {
+        Scan.OrderedIncludeList.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
         Scan.Settings.IncludeList.Remove(path);
     }
 
-    void AddExclude() {
-        var path = _newExclude.Trim();
+    void AddExclude(string? rawPath = null) {
+        var path = (rawPath ?? _newExclude).Trim().TrimEnd('\\', '/');
         if (!string.IsNullOrEmpty(path)) {
             Scan.Settings.BlackList.Add(path);
             _newExclude = string.Empty;
         }
     }
 
-    void OnIncludeKeyDown(KeyboardEventArgs e) {
-        if (e.Key == "Enter") AddInclude();
-    }
-
-    void OnExcludeKeyDown(KeyboardEventArgs e) {
-        if (e.Key == "Enter") AddExclude();
-    }
+    void OnIncludeKeyDown(KeyboardEventArgs e) { if (e.Key == "Enter") AddInclude(); }
+    void OnExcludeKeyDown(KeyboardEventArgs e) { if (e.Key == "Enter") AddExclude(); }
 
     string PathInputClass(string path) {
         if (string.IsNullOrWhiteSpace(path)) return string.Empty;
         return Directory.Exists(path.Trim()) ? "input-valid" : "input-invalid";
     }
 
+    // ── Folder browser
+    void OpenBrowser(bool forInclude) {
+        _browserForInclude = forInclude;
+        _browserCurrentPath = null;
+        _browserError = null;
+        _browserItems = DriveInfo.GetDrives()
+            .Where(d => d.IsReady)
+            .Select(d => d.RootDirectory.FullName)
+            .ToList();
+        _browserOpen = true;
+    }
+
+    void BrowseTo(string path) {
+        try {
+            _browserItems = Directory.GetDirectories(path)
+                .OrderBy(d => d, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            _browserCurrentPath = path;
+            _browserError = null;
+        }
+        catch (Exception ex) {
+            _browserError = ex.Message;
+        }
+    }
+
+    void BrowseUp() {
+        if (_browserCurrentPath == null) return;
+        var parent = Directory.GetParent(_browserCurrentPath)?.FullName;
+        if (parent == null) {
+            // Back to drives list
+            _browserCurrentPath = null;
+            _browserError = null;
+            _browserItems = DriveInfo.GetDrives()
+                .Where(d => d.IsReady)
+                .Select(d => d.RootDirectory.FullName)
+                .ToList();
+        }
+        else {
+            BrowseTo(parent);
+        }
+    }
+
+    void SelectBrowserFolder() {
+        if (_browserCurrentPath == null) return;
+        if (_browserForInclude)
+            AddInclude(_browserCurrentPath);
+        else
+            AddExclude(_browserCurrentPath);
+        _browserOpen = false;
+    }
+
+    // ── Settings
     void SaveSettings() {
         bool ok = Scan.SaveSettings();
         _saveMsg = ok ? "Settings saved." : "Failed to save settings.";

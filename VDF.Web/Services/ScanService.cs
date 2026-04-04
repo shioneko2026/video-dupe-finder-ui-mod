@@ -47,12 +47,17 @@ namespace VDF.Web.Services {
 		public int ThumbnailMax { get; private set; }
 		public IReadOnlyCollection<DuplicateItem> Duplicates => _engine.Duplicates;
 		public Settings Settings => _engine.Settings;
+		/// <summary>Ordered list of include folders. Index 0 = Main folder (leftmost in results).</summary>
+		public List<string> OrderedIncludeList { get; } = new();
 
 		public event Action? StateChanged;
 
 		public ScanService(WebSettingsService settingsService) {
 			_settingsService = settingsService;
 			settingsService.Load(_engine.Settings);
+			// Populate ordered list from loaded settings (order is best-effort from HashSet)
+			foreach (var path in _engine.Settings.IncludeList)
+				OrderedIncludeList.Add(path);
 
 			_engine.FilesEnumerated += (_, _) => Notify();
 			_engine.BuildingHashesDone += (_, _) => {
@@ -146,6 +151,7 @@ namespace VDF.Web.Services {
 			_engine.Duplicates.Clear();
 			_engine.Settings.IncludeList.Clear();
 			_engine.Settings.BlackList.Clear();
+			OrderedIncludeList.Clear();
 			Notify();
 		}
 
