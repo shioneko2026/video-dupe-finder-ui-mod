@@ -18,6 +18,12 @@ The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptua
 
 ---
 
+## Screenshot
+
+![Results page](docs/screenshot.jpg)
+
+---
+
 ## Features
 
 - **Card-per-group layout** — each duplicate group is a horizontal row of file columns
