@@ -61,6 +61,24 @@ The original VDF has no concept of folder ordering or consistent column position
 
 ---
 
+## For Normal Users
+
+No technical knowledge required. You need a Windows PC and an internet connection for the first launch — that's it.
+
+1. **Download** the zip from the [Releases page](../../releases) and save it somewhere you can find it
+2. **Extract** — right-click the zip → Extract All → Extract (do not run from inside the zip)
+3. **Launch** — open the extracted folder and double-click **`Start VDF.bat`**
+
+If Windows shows a **"Windows protected your PC"** warning: click **More info → Run anyway**. This is normal for apps not published on the Microsoft Store.
+
+A small server window will appear in your taskbar — leave it open. Your browser will open automatically once the server is ready.
+
+**First launch only:** the app downloads FFmpeg (the tool it uses to read video files) automatically — about 60–80 MB, takes 1–2 minutes. You'll see a progress bar on the Scan page. It only happens once.
+
+→ **[Full install guide with troubleshooting](docs/INSTALL.md)**
+
+---
+
 ## How to Run
 
 ### Requirements
