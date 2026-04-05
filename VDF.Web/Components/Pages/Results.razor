@@ -32,6 +32,9 @@
                     <button @onclick="() => AutoSelect(AutoSelectMode.Newest)">↑ Newest (keep oldest)</button>
                     <button @onclick="() => AutoSelect(AutoSelectMode.HundredPercentEqual)">= 100% equal groups</button>
                     <hr />
+                    <div class="dropdown-section">By Property</div>
+                    <button @onclick="SelectNoAudio">🔇 No audio track</button>
+                    <hr />
                     <button @onclick="InvertSelection">⇄ Invert selection</button>
                     <button @onclick="ClearSelection">✕ Deselect all</button>
                 </div>
@@ -133,6 +136,8 @@
                                     <button @onclick="() => { FlagLargest(items); _openGroupDropdown = Guid.Empty; }">↑ Largest file</button>
                                     <button @onclick="() => { FlagShortest(items); _openGroupDropdown = Guid.Empty; }">⏱ Shortest duration</button>
                                     <button @onclick="() => { FlagLongest(items); _openGroupDropdown = Guid.Empty; }">⏳ Longest duration</button>
+                                    <hr />
+                                    <button @onclick="() => { FlagNoAudio(items); _openGroupDropdown = Guid.Empty; }">🔇 No audio track</button>
                                 </div>
                             }
                         </div>
@@ -402,9 +407,20 @@
         foreach (var i in items.Where(x => x.Duration == max && !_deleted.Contains(x.Path)))
             _flagged.Add(i.Path);
     }
+    void FlagNoAudio(List<DuplicateItem> items) {
+        ClearGroupSelection(items);
+        foreach (var i in items.Where(x => !x.IsImage && string.IsNullOrEmpty(x.AudioFormat) && !_deleted.Contains(x.Path)))
+            _flagged.Add(i.Path);
+    }
 
     // ── Global smart select (existing logic preserved)
     void ClearSelection() { _autoSelectOpen = false; _flagged.Clear(); }
+    void SelectNoAudio() {
+        _autoSelectOpen = false;
+        _flagged.Clear();
+        foreach (var item in Scan.Duplicates.Where(d => !d.IsImage && string.IsNullOrEmpty(d.AudioFormat) && !_deleted.Contains(d.Path)))
+            _flagged.Add(item.Path);
+    }
     void InvertSelection() {
         _autoSelectOpen = false;
         foreach (var item in Scan.Duplicates.Where(d => !_deleted.Contains(d.Path))) {
