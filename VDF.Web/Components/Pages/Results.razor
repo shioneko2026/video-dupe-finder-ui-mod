@@ -44,6 +44,11 @@
 
         <div class="toolbar-spacer"></div>
 
+        @* Clear Resolved — removes groups where only 1 file remains *@
+        <button class="btn-sm" @onclick="ClearResolved"
+                disabled="@(!Scan.Duplicates.GroupBy(d => d.GroupId).Any(g => g.Count(i => !_deleted.Contains(i.Path)) <= 1))"
+                title="Remove groups where all duplicates have been deleted, leaving only one file">Clear Resolved</button>
+
         @* Safety toggle *@
         <button class="@(_safetyOn ? "safety-on" : "safety-off")" @onclick="ToggleSafety">
             @(_safetyOn ? "🛡 Safety: ON" : "⚠ Raw Mode")
@@ -143,6 +148,9 @@
                         </div>
                         <button class="btn-sm" @onclick="() => ClearGroupSelection(items)"
                                 disabled="@(!items.Any(x => _flagged.Contains(x.Path)))">✕ Unselect</button>
+                        <button class="btn-sm" @onclick="() => { FlagNoAudio(items); _openGroupDropdown = Guid.Empty; }"
+                                disabled="@(!items.Any(x => !x.IsImage && string.IsNullOrEmpty(x.AudioFormat) && !_deleted.Contains(x.Path)))"
+                                title="Flag files in this group that have no audio track">🔇 Select No Audio Track</button>
 
                         <div class="toolbar-sep"></div>
 
@@ -411,6 +419,17 @@
         ClearGroupSelection(items);
         foreach (var i in items.Where(x => !x.IsImage && string.IsNullOrEmpty(x.AudioFormat) && !_deleted.Contains(x.Path)))
             _flagged.Add(i.Path);
+    }
+
+    // ── Clear resolved groups (only 1 file left — duplicates already deleted)
+    void ClearResolved() {
+        var resolved = Scan.Duplicates
+            .GroupBy(d => d.GroupId)
+            .Where(g => g.Count(i => !_deleted.Contains(i.Path)) <= 1)
+            .SelectMany(g => g)
+            .ToList();
+        Scan.RemoveFromResults(resolved);
+        foreach (var item in resolved) { _flagged.Remove(item.Path); _deleted.Remove(item.Path); }
     }
 
     // ── Global smart select (existing logic preserved)
