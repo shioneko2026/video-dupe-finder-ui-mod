@@ -26,6 +26,8 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton<WebSettingsService>();
 // ScanService is a singleton — one scan at a time, shared across all connections.
 builder.Services.AddSingleton<ScanService>();
+// FFmpegSetupService checks for FFmpeg on first page load and auto-downloads if missing.
+builder.Services.AddSingleton<FFmpegSetupService>();
 
 var app = builder.Build();
 

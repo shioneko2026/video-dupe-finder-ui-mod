@@ -2,12 +2,38 @@
 @rendermode InteractiveServer
 @using System.IO
 @inject ScanService Scan
+@inject FFmpegSetupService FfmpegSetup
 @implements IDisposable
 
 <PageTitle>Scan — Video Duplicate Finder</PageTitle>
 
 <div class="scan-page">
 <h1>Scan</h1>
+
+@* ── FFMPEG SETUP BANNER ── *@
+@if (FfmpegSetup.Status == FfmpegSetupStatus.Checking) {
+    <div class="ffmpeg-banner ffmpeg-checking">
+        <span class="spinner"></span> Checking for FFmpeg...
+    </div>
+}
+else if (FfmpegSetup.Status == FfmpegSetupStatus.Downloading) {
+    <div class="ffmpeg-banner ffmpeg-downloading">
+        <div class="ffmpeg-banner-top">
+            <span class="spinner"></span>
+            <span>@FfmpegSetup.ProgressMessage</span>
+        </div>
+        <div class="ffmpeg-progress-track">
+            <div class="ffmpeg-progress-fill" style="width:@(FfmpegSetup.ProgressPercent)%"></div>
+        </div>
+        <p class="ffmpeg-note">FFmpeg is being downloaded — this only happens once. Scanning will be available when it completes.</p>
+    </div>
+}
+else if (FfmpegSetup.Status == FfmpegSetupStatus.Failed) {
+    <div class="ffmpeg-banner ffmpeg-failed">
+        <strong>FFmpeg not found</strong>
+        <p style="white-space:pre-wrap">@FfmpegSetup.ErrorMessage</p>
+    </div>
+}
 
 @if (Scan.State == ScanState.Error) {
     <div class="error-box">
@@ -114,7 +140,8 @@ else {
             }
             <button @onclick="SaveSettings" title="Save current settings to disk">Save settings</button>
             <button class="primary" @onclick="Scan.StartScanAndCompare"
-                    disabled="@(Scan.OrderedIncludeList.Count == 0)">
+                    disabled="@(Scan.OrderedIncludeList.Count == 0 || !FfmpegSetup.IsReady)"
+                    title="@(!FfmpegSetup.IsReady ? "Waiting for FFmpeg setup to complete..." : null)">
                 Start Scan
             </button>
         </div>
@@ -199,8 +226,13 @@ else {
     List<string> _browserItems = new();
     string? _browserError;
 
-    protected override void OnInitialized() =>
+    protected override void OnInitialized() {
         Scan.StateChanged += OnStateChanged;
+        FfmpegSetup.StateChanged += OnStateChanged;
+    }
+
+    protected override async Task OnInitializedAsync() =>
+        await FfmpegSetup.EnsureAsync();
 
     void OnStateChanged() {
         try { _ = InvokeAsync(StateHasChanged); }
@@ -306,6 +338,8 @@ else {
     static string TruncatePath(string path, int max) =>
         path.Length <= max ? path : "..." + path[^(max - 3)..];
 
-    public void Dispose() =>
+    public void Dispose() {
         Scan.StateChanged -= OnStateChanged;
+        FfmpegSetup.StateChanged -= OnStateChanged;
+    }
 }

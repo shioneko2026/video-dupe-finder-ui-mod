@@ -404,6 +404,61 @@ input.input-invalid { border-color: #fca5a5; }
     word-break: break-all; font-family: monospace;
 }
 
+/* ─── FFMPEG SETUP BANNER ─── */
+.ffmpeg-banner {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.ffmpeg-checking {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+    color: #6b7280;
+    flex-direction: row;
+    align-items: center;
+}
+.ffmpeg-downloading {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e40af;
+}
+.ffmpeg-banner-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+.ffmpeg-progress-track {
+    height: 6px;
+    background: #bfdbfe;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.ffmpeg-progress-fill {
+    height: 100%;
+    background: #2563eb;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+.ffmpeg-note {
+    font-size: 11px;
+    color: #3b82f6;
+    opacity: 0.85;
+}
+.ffmpeg-failed {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+    gap: 6px;
+}
+.ffmpeg-failed strong { font-size: 13px; }
+.ffmpeg-failed p { font-size: 11px; color: #b91c1c; line-height: 1.6; }
+
 /* ─── SETTINGS PAGE ─── */
 .settings-page { padding: 20px; overflow-y: auto; }
 .settings-page h1 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
