@@ -2,7 +2,7 @@
 
 A fork of [videoduplicatefinder](https://github.com/0x90d/videoduplicatefinder) with a fully redesigned light-mode Web UI, built for personal use on Windows.
 
-The original is a powerful tool, but it assumes you're comfortable with software. This fork is built around the opposite idea: **you should be able to hand it to anyone and have it just work.** Double-click to launch, FFmpeg downloads itself on first run, nothing to install or configure. The UI is redesigned from scratch to make comparing and cleaning up duplicates fast and obvious — side-by-side file cards, color-coded differences, one-click smart selection.
+The original does the hard work well — scanning, hashing, perceptual comparison. What this fork changes is the *review* experience. The upstream results page is a flat scrollable list that makes you mentally piece together which files belong together. This fork replaces it with a card-per-group layout: files sit side by side, metadata lines up at the same height, and color coding immediately shows you where the differences are — before you've read a single number.
 
 The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptual comparison logic is inherited from upstream. Only the web frontend has been replaced.
 
