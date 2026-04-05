@@ -2,6 +2,8 @@
 
 A fork of [videoduplicatefinder](https://github.com/0x90d/videoduplicatefinder) with a fully redesigned light-mode Web UI, built for personal use on Windows.
 
+The original is a powerful tool, but it assumes you're comfortable with software. This fork is built around the opposite idea: **you should be able to hand it to anyone and have it just work.** Double-click to launch, FFmpeg downloads itself on first run, nothing to install or configure. The UI is redesigned from scratch to make comparing and cleaning up duplicates fast and obvious — side-by-side file cards, color-coded differences, one-click smart selection.
+
 The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptual comparison logic is inherited from upstream. Only the web frontend has been replaced.
 
 ---
@@ -75,7 +77,7 @@ A small server window will appear in your taskbar — leave it open. Your browse
 
 **First launch only:** the app downloads FFmpeg (the tool it uses to read video files) automatically — about 60–80 MB, takes 1–2 minutes. You'll see a progress bar on the Scan page. It only happens once.
 
-→ **[Full install guide with troubleshooting](docs/INSTALL.md)**
+→ **[Full install guide with troubleshooting](HOW%20TO%20INSTALL.md)**
 
 ---
 
