@@ -47,12 +47,22 @@ Designate a **Main folder** — the first folder you add gets a ★ badge. Its f
 
 ### Smart Select
 
-Auto-flag files by criteria, per group or globally:
+Auto-flag files by criteria, per group or globally — all modes clear the previous selection before applying so you never accidentally stack selections.
 
-- **Global:** Lowest quality, smallest file, oldest, newest, 100% equal groups, No audio track, Invert
-- **Per group:** Lowest/highest resolution, smallest/largest, shortest/longest, no audio track
+**Global (toolbar dropdown):**
+- Lowest quality (multi-criteria: duration → resolution → bitrate → fps → audio bitrate)
+- Smallest file / Oldest / Newest
+- 100% equal groups — flags all but one in perfectly identical groups
+- **No audio track** — flags every video in the results that has no audio stream
+- Invert selection / Deselect all
 
-All Smart Select modes clear the previous selection before applying — no accidental stacking.
+**Per group (each card header):**
+- Lowest / Highest resolution
+- Smallest / Largest file
+- Shortest / Longest duration
+- **No audio track** — flags the file in that group with no audio stream
+
+The No Audio Track option is useful when one version of a file is missing its audio entirely — it finds it instantly without manual inspection.
 
 ### Deletion controls
 
