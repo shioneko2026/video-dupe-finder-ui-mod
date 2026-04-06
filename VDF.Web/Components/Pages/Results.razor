@@ -3,6 +3,7 @@
 @using System.IO
 @inject ScanService Scan
 @inject IJSRuntime JS
+@inject NavigationManager Nav
 @implements IDisposable
 
 <PageTitle>Results — Video Duplicate Finder</PageTitle>
@@ -11,6 +12,8 @@
 
     @* ── TOOLBAR ── *@
     <div class="results-toolbar">
+        <button class="btn-sm" @onclick="Rescan" title="Re-run scan with the same folders">↺ Rescan</button>
+        <div class="toolbar-sep"></div>
         <input class="search-box" value="@_search"
                @oninput="e => _search = e.Value?.ToString() ?? string.Empty"
                placeholder="Filter by path..." />
@@ -306,6 +309,14 @@
     void OnStateChanged() {
         try { _ = InvokeAsync(StateHasChanged); }
         catch { }
+    }
+
+    // ── Rescan (same folders, clears results and restarts)
+    void Rescan() {
+        _flagged.Clear();
+        _deleted.Clear();
+        Scan.StartScanAndCompare();
+        Nav.NavigateTo("/");
     }
 
     // ── Safety

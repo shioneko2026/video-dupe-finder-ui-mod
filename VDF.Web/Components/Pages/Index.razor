@@ -3,6 +3,9 @@
 @using System.IO
 @inject ScanService Scan
 @inject FFmpegSetupService FfmpegSetup
+@inject WebSettingsService AppSettings
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 @implements IDisposable
 
 <PageTitle>Scan — Video Duplicate Finder</PageTitle>
@@ -235,7 +238,16 @@ else {
         await FfmpegSetup.EnsureAsync();
 
     void OnStateChanged() {
-        try { _ = InvokeAsync(StateHasChanged); }
+        try {
+            _ = InvokeAsync(async () => {
+                StateHasChanged();
+                if (Scan.State == ScanState.Done) {
+                    if (AppSettings.BeepOnScanComplete)
+                        await JS.InvokeVoidAsync("vdfBeep");
+                    Nav.NavigateTo("/results");
+                }
+            });
+        }
         catch { }
     }
 

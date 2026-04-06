@@ -45,7 +45,12 @@ namespace VDF.Web.Services {
 			public bool EnablePartialClipDetection { get; set; }
 			public double PartialClipMinRatio { get; set; } = 0.10;
 			public double PartialClipSimilarityThreshold { get; set; } = 0.80;
+			// UI preferences (not part of VDF.Core Settings)
+			public bool BeepOnScanComplete { get; set; } = true;
 		}
+
+		/// <summary>UI-only preferences not tied to VDF.Core Settings.</summary>
+		public bool BeepOnScanComplete { get; set; } = true;
 
 		static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
 
@@ -89,6 +94,7 @@ namespace VDF.Web.Services {
 				s.EnablePartialClipDetection = dto.EnablePartialClipDetection;
 				s.PartialClipMinRatio = dto.PartialClipMinRatio;
 				s.PartialClipSimilarityThreshold = dto.PartialClipSimilarityThreshold;
+				BeepOnScanComplete = dto.BeepOnScanComplete;
 				return true;
 			}
 			catch { return false; }
@@ -119,6 +125,7 @@ namespace VDF.Web.Services {
 					EnablePartialClipDetection = s.EnablePartialClipDetection,
 					PartialClipMinRatio = s.PartialClipMinRatio,
 					PartialClipSimilarityThreshold = s.PartialClipSimilarityThreshold,
+					BeepOnScanComplete = BeepOnScanComplete,
 				};
 				File.WriteAllText(SettingsPath, JsonSerializer.Serialize(dto, JsonOpts));
 				return true;
