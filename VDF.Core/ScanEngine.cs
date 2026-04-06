@@ -1344,8 +1344,8 @@ namespace VDF.Core {
 							list.Add(bitmapImage);
 						}
 					}
-					Debug.Assert(timeStamps != null);
-					entry.SetThumbnails(list ?? (NoThumbnailImage != null ? new() { NoThumbnailImage } : new()), timeStamps!);
+					if (timeStamps == null) return ValueTask.CompletedTask;
+					entry.SetThumbnails(list ?? (NoThumbnailImage != null ? new() { NoThumbnailImage } : new()), timeStamps);
 
 					return ValueTask.CompletedTask;
 				});
@@ -1413,8 +1413,8 @@ namespace VDF.Core {
 							list.Add(bitmapImage);
 						}
 					}
-					Debug.Assert(timeStamps != null);
-					entry.SetThumbnails(list ?? (NoThumbnailImage != null ? new() { NoThumbnailImage } : new()), timeStamps!);
+					if (timeStamps == null) return ValueTask.CompletedTask;
+					entry.SetThumbnails(list ?? (NoThumbnailImage != null ? new() { NoThumbnailImage } : new()), timeStamps);
 
 					return ValueTask.CompletedTask;
 				});

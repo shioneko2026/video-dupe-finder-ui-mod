@@ -42,6 +42,7 @@ namespace VDF.Web.Services {
 			public bool IgnoreBlackPixels { get; set; }
 			public bool IgnoreWhitePixels { get; set; }
 			public bool ScanAgainstEntireDatabase { get; set; }
+			public bool IncludeNonExistingFiles { get; set; } = false;
 			public bool EnablePartialClipDetection { get; set; }
 			public double PartialClipMinRatio { get; set; } = 0.10;
 			public double PartialClipSimilarityThreshold { get; set; } = 0.80;
@@ -91,6 +92,7 @@ namespace VDF.Web.Services {
 				s.IgnoreBlackPixels = dto.IgnoreBlackPixels;
 				s.IgnoreWhitePixels = dto.IgnoreWhitePixels;
 				s.ScanAgainstEntireDatabase = dto.ScanAgainstEntireDatabase;
+				s.IncludeNonExistingFiles = dto.IncludeNonExistingFiles;
 				s.EnablePartialClipDetection = dto.EnablePartialClipDetection;
 				s.PartialClipMinRatio = dto.PartialClipMinRatio;
 				s.PartialClipSimilarityThreshold = dto.PartialClipSimilarityThreshold;
@@ -122,6 +124,7 @@ namespace VDF.Web.Services {
 					IgnoreBlackPixels = s.IgnoreBlackPixels,
 					IgnoreWhitePixels = s.IgnoreWhitePixels,
 					ScanAgainstEntireDatabase = s.ScanAgainstEntireDatabase,
+					IncludeNonExistingFiles = s.IncludeNonExistingFiles,
 					EnablePartialClipDetection = s.EnablePartialClipDetection,
 					PartialClipMinRatio = s.PartialClipMinRatio,
 					PartialClipSimilarityThreshold = s.PartialClipSimilarityThreshold,

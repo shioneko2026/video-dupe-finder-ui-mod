@@ -69,6 +69,12 @@
         Ignore white pixels
     </label>
     <label>
+        <input type="checkbox"
+               checked="@Scan.Settings.IncludeNonExistingFiles"
+               @onchange="e => Scan.Settings.IncludeNonExistingFiles = (bool)e.Value!" />
+        Include files no longer on disk (from database)
+    </label>
+    <label>
         Max degree of parallelism
         <input type="number" min="1"
                value="@Scan.Settings.MaxDegreeOfParallelism"
