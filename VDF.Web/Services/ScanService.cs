@@ -36,6 +36,7 @@ namespace VDF.Web.Services {
 		readonly ScanEngine _engine = new();
 		readonly WebSettingsService _settingsService;
 		CancellationTokenSource _cts = new();
+		DateTime _lastProgressNotify = DateTime.MinValue;
 
 		public ScanState State { get; private set; } = ScanState.Idle;
 		public string? ErrorMessage { get; private set; }
@@ -74,7 +75,12 @@ namespace VDF.Web.Services {
 					Elapsed = e.Elapsed,
 					Remaining = e.Remaining
 				};
-				Notify();
+				// Throttle to max 4 UI updates/sec — prevents SignalR flooding on large scans
+				var now = DateTime.UtcNow;
+				if ((now - _lastProgressNotify).TotalMilliseconds >= 250) {
+					_lastProgressNotify = now;
+					Notify();
+				}
 			};
 			_engine.ScanDone += (_, _) => {
 				State = ScanState.RetrievingThumbnails;
@@ -162,8 +168,8 @@ namespace VDF.Web.Services {
 			Notify();
 		}
 
-		/// <summary>Deletes files from disk and removes them from results.</summary>
-		public (int Deleted, int Failed, List<string> Errors) DeleteItems(IEnumerable<DuplicateItem> items, bool permanent) {
+		/// <summary>Deletes files from disk. Pass removeFromResults:false to keep them in the list (grey-out mode).</summary>
+		public (int Deleted, int Failed, List<string> Errors) DeleteItems(IEnumerable<DuplicateItem> items, bool permanent, bool removeFromResults = true) {
 			int deleted = 0, failed = 0;
 			var errors = new List<string>();
 			foreach (var item in items.ToList()) {
@@ -172,7 +178,8 @@ namespace VDF.Web.Services {
 						File.Delete(item.Path);
 					else
 						MoveToTrash(item.Path);
-					_engine.Duplicates.Remove(item);
+					if (removeFromResults)
+						_engine.Duplicates.Remove(item);
 					deleted++;
 				}
 				catch (Exception ex) {

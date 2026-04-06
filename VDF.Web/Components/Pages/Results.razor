@@ -49,6 +49,12 @@
                 disabled="@(!Scan.Duplicates.GroupBy(d => d.GroupId).Any(g => g.Count(i => !_deleted.Contains(i.Path)) <= 1))"
                 title="Remove groups where all duplicates have been deleted, leaving only one file">Clear Resolved</button>
 
+        @* Grey-out / Remove toggle *@
+        <button class="@(_greyOutOnDelete ? "delete-mode-grey" : "delete-mode-remove")" @onclick="() => _greyOutOnDelete = !_greyOutOnDelete"
+                title="@(_greyOutOnDelete ? "Deleted files stay visible greyed out in the card" : "Deleted files are removed from the card immediately")">
+            @(_greyOutOnDelete ? "On Delete: Grey Out" : "On Delete: Remove")
+        </button>
+
         @* Safety toggle *@
         <button class="@(_safetyOn ? "safety-on" : "safety-off")" @onclick="ToggleSafety">
             @(_safetyOn ? "🛡 Safety: ON" : "⚠ Raw Mode")
@@ -284,6 +290,7 @@
     readonly HashSet<string> _flagged = new();
     readonly HashSet<string> _deleted = new();
     bool _safetyOn = true;
+    bool _greyOutOnDelete = true;
     bool _showRawModal = false;
     string? _operationMsg;
     bool _operationFailed;
@@ -316,7 +323,7 @@
 
     // ── Per-file delete (recycle bin)
     void DeleteSingle(DuplicateItem item) {
-        var (deleted, _, errors) = Scan.DeleteItems(new[] { item }, permanent: false);
+        var (deleted, _, errors) = Scan.DeleteItems(new[] { item }, permanent: false, removeFromResults: !_greyOutOnDelete);
         if (deleted > 0) {
             _deleted.Add(item.Path);
             _flagged.Remove(item.Path);
@@ -332,7 +339,7 @@
             bool ok = await JS.InvokeAsync<bool>("confirm", $"Send {flaggedItems.Count} flagged file(s) to the Recycle Bin?");
             if (!ok) return;
         }
-        var (deleted, failed, errors) = Scan.DeleteItems(flaggedItems, permanent: false);
+        var (deleted, failed, errors) = Scan.DeleteItems(flaggedItems, permanent: false, removeFromResults: !_greyOutOnDelete);
         foreach (var item in flaggedItems) { _deleted.Add(item.Path); _flagged.Remove(item.Path); }
         if (failed > 0) ShowMsg($"{deleted} deleted, {failed} failed: {string.Join("; ", errors.Take(3))}", true);
     }
@@ -345,7 +352,7 @@
             bool ok = await JS.InvokeAsync<bool>("confirm", $"Send {toDelete.Count} flagged file(s) to the Recycle Bin?");
             if (!ok) return;
         }
-        var (deleted, failed, errors) = Scan.DeleteItems(toDelete, permanent: false);
+        var (deleted, failed, errors) = Scan.DeleteItems(toDelete, permanent: false, removeFromResults: !_greyOutOnDelete);
         foreach (var item in toDelete) { _deleted.Add(item.Path); _flagged.Remove(item.Path); }
         if (failed > 0) ShowMsg($"{deleted} deleted, {failed} failed: {string.Join("; ", errors.Take(3))}", true);
         else ShowMsg($"{deleted} file(s) sent to Recycle Bin.", false);

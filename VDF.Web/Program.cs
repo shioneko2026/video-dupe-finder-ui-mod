@@ -21,7 +21,13 @@ using VDF.Web.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
-	.AddInteractiveServerComponents();
+	.AddInteractiveServerComponents()
+	.AddHubOptions(options => {
+		// Increase timeouts to prevent disconnects during heavy scans
+		options.ClientTimeoutInterval  = TimeSpan.FromSeconds(120);
+		options.HandshakeTimeout       = TimeSpan.FromSeconds(30);
+		options.KeepAliveInterval      = TimeSpan.FromSeconds(20);
+	});
 
 builder.Services.AddSingleton<WebSettingsService>();
 // ScanService is a singleton — one scan at a time, shared across all connections.
