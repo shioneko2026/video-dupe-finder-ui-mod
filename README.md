@@ -89,51 +89,61 @@ The No Audio Track option is useful when one version of a file is missing its au
 
 ---
 
-## For Normal Users
+## Installing & Using
 
-No technical knowledge required. You need a Windows PC and an internet connection for the first launch.
+No technical knowledge required. You just need a Windows PC.
 
-1. **Download** the zip from the [Releases page](../../releases) and save it somewhere you can find it
-2. **Extract** — right-click the zip → Extract All → Extract (do not run from inside the zip)
-3. **Launch** — open the extracted folder and double-click **`Start VDF.bat`**
+### Step 1 — Download
 
-If Windows shows a **"Windows protected your PC"** warning: click **More info → Run anyway**. This is normal for apps not published on the Microsoft Store.
+Go to the [Releases page](../../releases) and download the `.zip` file under the latest release. Save it anywhere — your Desktop is fine.
 
-A small server window will appear in your taskbar — leave it open. Your browser will open automatically once the server is ready.
+### Step 2 — Extract
 
-**First launch only:** the app downloads FFmpeg automatically — about 60–80 MB, takes 1–2 minutes. You'll see a progress bar on the Scan page. It only happens once.
+Right-click the zip file → **Extract All** → click **Extract**.
 
-→ **[Full install guide with troubleshooting](HOW%20TO%20INSTALL.md)**
+> Do not try to run anything from inside the zip. Extract it first.
 
----
+### Step 3 — Launch
 
-## How to Run (from source)
+Open the extracted folder and double-click **`Start VDF.bat`**.
 
-### Requirements
+**If Windows shows "Windows protected your PC":** click **More info** → **Run anyway**. This happens because the app isn't published through the Microsoft Store. It's safe.
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9)
-- FFmpeg and FFprobe on PATH (or in the `bin/` subfolder next to the exe)
+A small black window will appear minimised in your taskbar — that's the server running. Leave it open. Your browser will open automatically in a few seconds.
 
-### From Source
+### Step 4 — First launch: FFmpeg download
 
-```powershell
-git clone https://github.com/shioneko2026/video-dupe-finder-ui-mod.git
-cd video-dupe-finder-ui-mod
-dotnet run --project VDF.Web
-```
-
-Then open `http://localhost:5000` in your browser.
+The first time you run the app, it needs to download FFmpeg (the tool it uses to read video files). You'll see a progress bar on the Scan page — this takes about 1–2 minutes and uses roughly 60–80 MB. It only happens once. Wait for it to finish before scanning.
 
 ---
 
-## Workflow
+### Scanning for duplicates
 
-1. **Scan tab** — add include folders (Browse or type). First folder added = Main folder. Start scan.
-2. **Results tab** — review duplicate groups. Main folder's file is always leftmost.
-3. Click a column or use **Flag** to mark files for deletion.
-4. Use **Smart Select** (per group or global) to auto-flag by quality, size, date, or audio.
-5. **Delete Marked** or **Delete Flagged** (per group) sends files to Recycle Bin.
-6. **Complete and Clear** or **Clear Resolved** to clean up finished groups.
+1. On the **Scan** tab, click **Browse** and select a folder to scan. You can add multiple folders.
+   - The first folder you add becomes the **Main folder** — its files always appear on the left in results.
+2. Click **Start Scan** and wait. When it finishes, the app beeps and takes you to Results automatically.
+
+### Reviewing results
+
+Each duplicate group appears as a card. Files sit side by side so you can compare them directly.
+
+- **Color coding** — metadata values are color-coded across the group. Red means that value is unique to that file; matching values share a color. This tells you at a glance where the files differ.
+- **Click a column** (or click **Flag**) to mark a file for deletion. Flagged columns turn green.
+- Use the **Select** dropdown on each card to auto-flag by resolution, size, duration, or audio.
+- Use the **Smart Select** dropdown in the toolbar to flag across all groups at once.
+
+### Deleting
+
+- **Delete Flagged** — deletes flagged files in that group
+- **Delete Marked** (toolbar) — deletes all flagged files across every group
+- The **On Delete: Grey Out** toggle controls whether deleted columns disappear immediately or stay visible with a ✕ overlay. Grey Out is on by default so you can see what you removed.
+- Everything goes to the **Recycle Bin** — nothing is permanently deleted. Restore from Recycle Bin if you change your mind.
+
+### Cleaning up
+
+- **Complete and Clear** — removes a resolved group from the list without deleting anything
+- **Clear Resolved** (toolbar) — removes all groups where only one file remains
+- **Rescan** (toolbar) — re-runs the scan with the same folders without going back to the Scan tab
 
 ---
 
