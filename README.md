@@ -12,7 +12,7 @@ The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptua
 
 | Feature | Description |
 |---|---|
-| Color-coded metadata | Matching values share a color, unique values show red — differences jump out at a glance |
+| Color-coded metadata (extended) | Upstream highlights matching values in green; this fork assigns distinct colors per unique value (blue, purple, amber for shared, red for unique) so you can see which files match each other in groups of 3+ |
 | Configurable main folder | First folder gets ★ badge, its files always appear leftmost in every group |
 | Per-group controls | Select, delete, complete & clear individual groups without touching the rest |
 | Smart Select (expanded) | Shortest/longest duration, no audio track (skips all-silent groups) |
