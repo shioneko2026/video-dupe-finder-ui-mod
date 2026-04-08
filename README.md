@@ -1,23 +1,24 @@
 # video-dupe-finder-ui-mod
 
-A fork of [videoduplicatefinder](https://github.com/0x90d/videoduplicatefinder) with a fully redesigned light-mode Web UI, built for personal use on Windows.
+A fork of [videoduplicatefinder](https://github.com/0x90d/videoduplicatefinder) that extends the Web UI with additional review and workflow features, built for personal use on Windows.
 
-The original does the hard work well — scanning, hashing, perceptual comparison. What this fork changes is the *review* experience. The upstream results page is a flat scrollable list that makes you mentally piece together which files belong together. This fork replaces it with a card-per-group layout: files sit side by side, metadata lines up at the same height, and color coding immediately shows you where the differences are — before you've read a single number.
+The upstream already has a solid card-based Web UI with side-by-side comparison, dark/light themes, and auto-select. This fork builds on top of that with color-coded metadata, per-group controls, safety mode, and more granular selection tools to speed up the review process for larger libraries.
 
-The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptual comparison logic is inherited from upstream. Only the web frontend has been replaced.
+The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptual comparison logic is inherited from upstream. Only the web frontend has been modified.
 
 ---
 
-## What's Different
+## What This Fork Adds
 
-| Original | This Fork |
+| Feature | Description |
 |---|---|
-| Dark mode flat list | Light mode card-per-group layout |
-| Single scrollable table | Horizontal file columns (280px each) |
-| No folder ordering | Configurable main folder (leftmost column) |
-| No color pairing | Color-coded matching metadata values |
-| Generic auto-select | Smart Select per group + global |
-| Settings all on one page | Per-section save and reset-to-defaults |
+| Color-coded metadata | Matching values share a color, unique values show red — differences jump out at a glance |
+| Configurable main folder | First folder gets ★ badge, its files always appear leftmost in every group |
+| Per-group controls | Select, delete, complete & clear individual groups without touching the rest |
+| Smart Select (expanded) | Shortest/longest duration, no audio track (skips all-silent groups) |
+| Safety mode | Toggleable guard requiring confirmation before bulk deletions |
+| Per-section settings | Save and reset-to-defaults buttons on each settings section |
+| Scan complete banner | Prominent banner with result count and big button to view results |
 
 ---
 
@@ -30,10 +31,6 @@ The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptua
 ---
 
 ## Features
-
-### Side-by-side comparison that actually works
-
-Every duplicate group gets its own **card**. Inside each card, the files sit side-by-side as fixed-width columns — thumbnails, metadata, and action buttons all lined up at the same height. You see every file in a group at once, in one glance, without scrolling or cross-referencing rows.
 
 ### Color coding tells you what matters before you even read it
 
@@ -162,7 +159,7 @@ Each duplicate group appears as a card. Files sit side by side so you can compar
 
 ## Upstream
 
-This fork tracks [0x90d/videoduplicatefinder](https://github.com/0x90d/videoduplicatefinder). Only `VDF.Web/` has been modified — merges should be clean unless upstream changes the web layer.
+This fork tracks [0x90d/videoduplicatefinder](https://github.com/0x90d/videoduplicatefinder). Only `VDF.Web/` has been modified.
 
 ---
 
