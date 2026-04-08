@@ -20,11 +20,7 @@ The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptua
 
 ---
 
-## Screenshots
-
-![Scan page](docs/screenshot-scan.png)
-
-![Settings page](docs/screenshot-settings.png)
+## Screenshot
 
 ![Results page](docs/screenshot.jpg)
 
