@@ -34,9 +34,14 @@
                     <button @onclick="() => AutoSelect(AutoSelectMode.Oldest)">↑ Oldest (keep newest)</button>
                     <button @onclick="() => AutoSelect(AutoSelectMode.Newest)">↑ Newest (keep oldest)</button>
                     <button @onclick="() => AutoSelect(AutoSelectMode.HundredPercentEqual)">= 100% equal groups</button>
+                    <button @onclick="SelectShortest"
+                            title="Flags the shortest file in each group — skips groups where all files have the same duration.">↓ Shortest duration</button>
+                    <button @onclick="SelectLongest"
+                            title="Flags the longest file in each group — skips groups where all files have the same duration.">↑ Longest duration</button>
                     <hr />
                     <div class="dropdown-section">By Property</div>
-                    <button @onclick="SelectNoAudio">🔇 No audio track</button>
+                    <button @onclick="SelectNoAudio"
+                            title="Selects files with no audio track, group by group. Groups where ALL files have no audio are skipped entirely — if no file in the group has audio, there is no good copy to compare against.">🔇 No audio track</button>
                     <hr />
                     <button @onclick="InvertSelection">⇄ Invert selection</button>
                     <button @onclick="ClearSelection">✕ Deselect all</button>
@@ -158,8 +163,14 @@
                         <button class="btn-sm" @onclick="() => ClearGroupSelection(items)"
                                 disabled="@(!items.Any(x => _flagged.Contains(x.Path)))">✕ Unselect</button>
                         <button class="btn-sm" @onclick="() => { FlagNoAudio(items); _openGroupDropdown = Guid.Empty; }"
-                                disabled="@(!items.Any(x => !x.IsImage && string.IsNullOrEmpty(x.AudioFormat) && !_deleted.Contains(x.Path)))"
-                                title="Flag files in this group that have no audio track">🔇 Select No Audio Track</button>
+                                disabled="@(!(items.Any(x => !x.IsImage && string.IsNullOrEmpty(x.AudioFormat) && !_deleted.Contains(x.Path)) && items.Any(x => !x.IsImage && !string.IsNullOrEmpty(x.AudioFormat) && !_deleted.Contains(x.Path))))"
+                                title="Selects files with no audio track — only works when at least one file in this group has audio. If every file here has no audio, nothing is selected (can't tell which is the degraded copy).">🔇 Select No Audio Track</button>
+                        <button class="btn-sm" @onclick="() => FlagShortestDuration(items)"
+                                disabled="@(items.Where(x => !_deleted.Contains(x.Path)).Select(x => x.Duration).Distinct().Count() <= 1)"
+                                title="Flags the shortest file in this group. Does nothing if all files have the same duration.">↓ Shortest</button>
+                        <button class="btn-sm" @onclick="() => FlagLongestDuration(items)"
+                                disabled="@(items.Where(x => !_deleted.Contains(x.Path)).Select(x => x.Duration).Distinct().Count() <= 1)"
+                                title="Flags the longest file in this group. Does nothing if all files have the same duration.">↑ Longest</button>
 
                         <div class="toolbar-sep"></div>
 
@@ -434,8 +445,30 @@
             _flagged.Add(i.Path);
     }
     void FlagNoAudio(List<DuplicateItem> items) {
+        var eligible = items.Where(x => !x.IsImage && !_deleted.Contains(x.Path)).ToList();
+        if (!eligible.Any(x => !string.IsNullOrEmpty(x.AudioFormat))) return; // all silent — do nothing
         ClearGroupSelection(items);
-        foreach (var i in items.Where(x => !x.IsImage && string.IsNullOrEmpty(x.AudioFormat) && !_deleted.Contains(x.Path)))
+        foreach (var i in eligible.Where(x => string.IsNullOrEmpty(x.AudioFormat)))
+            _flagged.Add(i.Path);
+    }
+
+    void FlagShortestDuration(List<DuplicateItem> items) {
+        var eligible = items.Where(x => !x.IsImage && !_deleted.Contains(x.Path)).ToList();
+        if (eligible.Count < 2) return;
+        var min = eligible.Min(x => x.Duration);
+        if (eligible.Max(x => x.Duration) == min) return; // all same — do nothing
+        ClearGroupSelection(items);
+        foreach (var i in eligible.Where(x => x.Duration == min))
+            _flagged.Add(i.Path);
+    }
+
+    void FlagLongestDuration(List<DuplicateItem> items) {
+        var eligible = items.Where(x => !x.IsImage && !_deleted.Contains(x.Path)).ToList();
+        if (eligible.Count < 2) return;
+        var max = eligible.Max(x => x.Duration);
+        if (eligible.Min(x => x.Duration) == max) return; // all same — do nothing
+        ClearGroupSelection(items);
+        foreach (var i in eligible.Where(x => x.Duration == max))
             _flagged.Add(i.Path);
     }
 
@@ -455,8 +488,38 @@
     void SelectNoAudio() {
         _autoSelectOpen = false;
         _flagged.Clear();
-        foreach (var item in Scan.Duplicates.Where(d => !d.IsImage && string.IsNullOrEmpty(d.AudioFormat) && !_deleted.Contains(d.Path)))
-            _flagged.Add(item.Path);
+        foreach (var group in Scan.Duplicates.GroupBy(d => d.GroupId)) {
+            var items = group.Where(d => !d.IsImage && !_deleted.Contains(d.Path)).ToList();
+            if (!items.Any(d => !string.IsNullOrEmpty(d.AudioFormat))) continue; // all silent — skip group
+            foreach (var d in items.Where(d => string.IsNullOrEmpty(d.AudioFormat)))
+                _flagged.Add(d.Path);
+        }
+    }
+
+    void SelectShortest() {
+        _autoSelectOpen = false;
+        _flagged.Clear();
+        foreach (var group in Scan.Duplicates.GroupBy(d => d.GroupId)) {
+            var items = group.Where(d => !d.IsImage && !_deleted.Contains(d.Path)).ToList();
+            if (items.Count < 2) continue;
+            var min = items.Min(d => d.Duration);
+            if (items.Max(d => d.Duration) == min) continue; // all same — skip
+            foreach (var d in items.Where(d => d.Duration == min))
+                _flagged.Add(d.Path);
+        }
+    }
+
+    void SelectLongest() {
+        _autoSelectOpen = false;
+        _flagged.Clear();
+        foreach (var group in Scan.Duplicates.GroupBy(d => d.GroupId)) {
+            var items = group.Where(d => !d.IsImage && !_deleted.Contains(d.Path)).ToList();
+            if (items.Count < 2) continue;
+            var max = items.Max(d => d.Duration);
+            if (items.Min(d => d.Duration) == max) continue; // all same — skip
+            foreach (var d in items.Where(d => d.Duration == max))
+                _flagged.Add(d.Path);
+        }
     }
     void InvertSelection() {
         _autoSelectOpen = false;

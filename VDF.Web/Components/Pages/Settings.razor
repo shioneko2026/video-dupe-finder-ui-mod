@@ -10,93 +10,107 @@
 
 <section class="settings-section">
     <h2>Similarity</h2>
-    <label>
+    <label title="⚠ This field appears to be unused in the current version of VDF.Core — setting it has no effect on scan results. It is preserved for compatibility with saved settings files.">
         Threshold (hash difference, 0–10, lower = stricter)
         <input type="number" min="0" max="10"
                value="@Scan.Settings.Threshhold"
                @onchange="e => Scan.Settings.Threshhold = byte.Parse(e.Value!.ToString()!)" />
     </label>
-    <label>
+    <label title="How visually similar two files must be to be flagged as duplicates, expressed as a percentage. Default: 96%. Lower = catches more potential duplicates but increases false positives. 100% = only flag files that are visually identical frame-for-frame.">
         Minimum similarity %
         <input type="number" min="0" max="100" step="0.5"
                value="@Scan.Settings.Percent"
                @onchange="e => Scan.Settings.Percent = float.Parse(e.Value!.ToString()!)" />
     </label>
-    <label>
+    <label title="Two videos must have durations within this % of each other to even be compared. Default: 20% — so a 60-second video won't be compared against anything longer than 72 seconds or shorter than 48 seconds. Increase if you expect duplicates with very different runtimes (e.g. one has extra silence or credits).">
         Duration difference tolerance %
         <input type="number" min="0" max="100" step="1"
                value="@Scan.Settings.PercentDurationDifference"
                @onchange="e => Scan.Settings.PercentDurationDifference = double.Parse(e.Value!.ToString()!)" />
     </label>
+    <div class="section-actions">
+        <button @onclick="SaveAllSettings">Save Settings</button>
+        <button class="btn-default" @onclick="ResetSimilarity">Default Values</button>
+    </div>
+    @if (_settingsMsg != null) {
+        <p class="@(_settingsFailed ? "aborted-msg" : "done-msg")">@_settingsMsg</p>
+    }
 </section>
 
 <section class="settings-section">
     <h2>Scanning</h2>
-    <label>
+    <label title="When enabled, VDF scans all subfolders inside your include folders. Turn off to only scan the top-level folder itself.">
         <input type="checkbox"
                checked="@Scan.Settings.IncludeSubDirectories"
                @onchange="e => Scan.Settings.IncludeSubDirectories = (bool)e.Value!" />
         Scan subdirectories
     </label>
-    <label>
+    <label title="When enabled, image files (jpg, png, webp, etc.) are included in the scan alongside videos. Images use a different but compatible comparison method.">
         <input type="checkbox"
                checked="@Scan.Settings.IncludeImages"
                @onchange="e => Scan.Settings.IncludeImages = (bool)e.Value!" />
         Include images
     </label>
-    <label>
+    <label title="Uses perceptual hashing (pHash) instead of the default difference hash. pHash is better at detecting similarity across color grading, brightness shifts, or mild edits — but requires a pHash-indexed database. If your existing database was built without pHash, this will be ignored until you clear the database and rescan.">
         <input type="checkbox"
                checked="@Scan.Settings.UsePHashing"
                @onchange="e => Scan.Settings.UsePHashing = (bool)e.Value!" />
         Use perceptual hashing
     </label>
-    <label>
+    <label title="Also checks whether one file is a horizontally mirrored copy of another. This adds a second comparison pass per file pair, so it roughly doubles comparison time. Useful if you have mirrored re-uploads.">
         <input type="checkbox"
                checked="@Scan.Settings.CompareHorizontallyFlipped"
                @onchange="e => Scan.Settings.CompareHorizontallyFlipped = (bool)e.Value!" />
         Compare horizontally flipped
     </label>
-    <label>
+    <label title="Black pixels are excluded when computing visual similarity. Useful for letterboxed or pillarboxed videos where large black bars would otherwise dominate the hash and make unrelated videos look similar.">
         <input type="checkbox"
                checked="@Scan.Settings.IgnoreBlackPixels"
                @onchange="e => Scan.Settings.IgnoreBlackPixels = (bool)e.Value!" />
         Ignore black pixels
     </label>
-    <label>
+    <label title="White pixels are excluded when computing visual similarity. Useful if your videos have bright subtitles, watermarks, or white credits that would otherwise skew the comparison.">
         <input type="checkbox"
                checked="@Scan.Settings.IgnoreWhitePixels"
                @onchange="e => Scan.Settings.IgnoreWhitePixels = (bool)e.Value!" />
         Ignore white pixels
     </label>
-    <label>
+    <label title="When enabled, files that were previously scanned but have since been deleted or moved will be included in results from the database cache (shown with -1 B size). Off by default — deleted files stay gone after a rescan.">
         <input type="checkbox"
                checked="@Scan.Settings.IncludeNonExistingFiles"
                @onchange="e => Scan.Settings.IncludeNonExistingFiles = (bool)e.Value!" />
         Include files no longer on disk (from database)
     </label>
-    <label>
+    <label title="Number of CPU threads used during scanning and thumbnail retrieval. Default: 1 (single-threaded). Increase to use more cores for faster scans — but higher values use more CPU and RAM simultaneously. A value equal to your physical core count is usually the sweet spot.">
         Max degree of parallelism
         <input type="number" min="1"
                value="@Scan.Settings.MaxDegreeOfParallelism"
                @onchange="e => Scan.Settings.MaxDegreeOfParallelism = int.Parse(e.Value!.ToString()!)" />
     </label>
-    <label>
+    <label title="How many frames are sampled from each video for visual comparison. More frames = more accurate duplicate detection (especially for long videos) but slower scans and more memory usage. Default: 1. Increase to 3–5 for better accuracy on varied content.">
         Thumbnail count per file
         <input type="number" min="1" max="20"
                value="@Scan.Settings.ThumbnailCount"
                @onchange="e => Scan.Settings.ThumbnailCount = int.Parse(e.Value!.ToString()!)" />
     </label>
+    <div class="section-actions">
+        <button @onclick="SaveAllSettings">Save Settings</button>
+        <button class="btn-default" @onclick="ResetScanning">Default Values</button>
+    </div>
+    @if (_settingsMsg != null) {
+        <p class="@(_settingsFailed ? "aborted-msg" : "done-msg")">@_settingsMsg</p>
+    }
 </section>
 
 <section class="settings-section">
     <h2>FFmpeg</h2>
-    <label>
+    <label title="Uses FFmpeg as an in-process library (via FFmpeg.AutoGen) instead of spawning ffmpeg.exe as a separate process. Can be faster, but requires FFmpeg shared library DLL files (avcodec, avformat, etc.) rather than just the standalone exe. Leave off unless you specifically have those DLLs available.">
         <input type="checkbox"
                checked="@Scan.Settings.UseNativeFfmpegBinding"
                @onchange="e => Scan.Settings.UseNativeFfmpegBinding = (bool)e.Value!" />
         Use native FFmpeg binding
     </label>
-    <label>
+    <label title="Tells FFmpeg to use your GPU for video decoding when extracting thumbnails. Can significantly speed up scanning for large libraries. Options depend on your hardware — CUDA for NVIDIA, QSV for Intel, DXVA2 for generic Windows GPU. If unsure, try DXVA2 first. Leave as 'none' if you experience crashes or incorrect results.">
         Hardware acceleration
         <select @onchange="e => Scan.Settings.HardwareAccelerationMode = Enum.Parse<VDF.Core.FFTools.FFHardwareAccelerationMode>(e.Value!.ToString()!)">
             @foreach (var mode in Enum.GetValues<VDF.Core.FFTools.FFHardwareAccelerationMode>()) {
@@ -104,30 +118,37 @@
             }
         </select>
     </label>
-    <label>
+    <label title="Extra arguments appended to FFmpeg commands when extracting thumbnails. For advanced users only. Incorrect arguments will cause thumbnail extraction to fail silently.">
         Custom FFmpeg arguments
         <input type="text"
                value="@Scan.Settings.CustomFFArguments"
                @onchange="e => Scan.Settings.CustomFFArguments = e.Value?.ToString() ?? string.Empty" />
     </label>
+    <div class="section-actions">
+        <button @onclick="SaveAllSettings">Save Settings</button>
+        <button class="btn-default" @onclick="ResetFFmpeg">Default Values</button>
+    </div>
+    @if (_settingsMsg != null) {
+        <p class="@(_settingsFailed ? "aborted-msg" : "done-msg")">@_settingsMsg</p>
+    }
 </section>
 
 <section class="settings-section">
     <h2>Partial Clip Detection</h2>
-    <label>
+    <label title="Uses audio fingerprinting (Chromaprint) to find videos where one is a clip contained inside a longer video — for example, a 3-minute scene extracted from a 2-hour movie. Visual comparison alone often misses these since only a small fraction of frames overlap. This runs as a separate pass after the main scan and adds significant time for large libraries.">
         <input type="checkbox"
                checked="@Scan.Settings.EnablePartialClipDetection"
                @onchange="e => Scan.Settings.EnablePartialClipDetection = (bool)e.Value!" />
         Enable partial clip detection (audio fingerprinting)
     </label>
     @if (Scan.Settings.EnablePartialClipDetection) {
-        <label>
+        <label title="The clip must be at least this % as long as the source video to be checked. Default: 10% — so a 10-minute source won't bother comparing against anything shorter than 1 minute. Increase to only detect substantial clips; decrease to catch very short excerpts (more comparisons, slower).">
             Min clip / source ratio %
             <input type="number" min="1" max="100" step="1"
                    value="@((int)(Scan.Settings.PartialClipMinRatio * 100))"
                    @onchange="e => Scan.Settings.PartialClipMinRatio = int.Parse(e.Value!.ToString()!) / 100.0" />
         </label>
-        <label>
+        <label title="Minimum audio fingerprint similarity score for two files to be flagged as a partial clip match. Higher = stricter, fewer false positives. Lower = catches more matches but may flag unrelated files with similar audio patterns.">
             Min audio similarity %
             <input type="number" min="1" max="100" step="1"
                    value="@((int)(Scan.Settings.PartialClipSimilarityThreshold * 100))"
@@ -142,13 +163,13 @@
         <input type="checkbox"
                checked="@AppSettings.BeepOnScanComplete"
                @onchange="e => AppSettings.BeepOnScanComplete = (bool)e.Value!" />
-        Beep when scan completes (also auto-redirects to Results)
+        Beep when scan completes
     </label>
 </section>
 
 <section class="settings-section">
     <h2>Database</h2>
-    <label>
+    <label title="Where VDF stores its scan cache database. The database remembers hashes and metadata from previous scans so files don't need to be re-processed on every scan. Default: same folder as the exe. Change this if you want to store the database on a different drive or shared location.">
         Custom database folder
         <input type="text"
                value="@Scan.Settings.CustomDatabaseFolder"
@@ -156,3 +177,42 @@
     </label>
 </section>
 </div>
+
+@code {
+    string? _settingsMsg;
+    bool _settingsFailed;
+
+    void SaveAllSettings() {
+        bool ok = Scan.SaveSettings();
+        _settingsMsg = ok ? "Settings saved." : "Failed to save settings.";
+        _settingsFailed = !ok;
+        _ = Task.Delay(3000).ContinueWith(_ => InvokeAsync(() => {
+            _settingsMsg = null;
+            StateHasChanged();
+        }));
+    }
+
+    void ResetSimilarity() {
+        Scan.Settings.Threshhold = 5;
+        Scan.Settings.Percent = 96f;
+        Scan.Settings.PercentDurationDifference = 20d;
+    }
+
+    void ResetScanning() {
+        Scan.Settings.IncludeSubDirectories = true;
+        Scan.Settings.IncludeImages = true;
+        Scan.Settings.UsePHashing = false;
+        Scan.Settings.CompareHorizontallyFlipped = false;
+        Scan.Settings.IgnoreBlackPixels = false;
+        Scan.Settings.IgnoreWhitePixels = false;
+        Scan.Settings.IncludeNonExistingFiles = false;
+        Scan.Settings.MaxDegreeOfParallelism = 1;
+        Scan.Settings.ThumbnailCount = 1;
+    }
+
+    void ResetFFmpeg() {
+        Scan.Settings.UseNativeFfmpegBinding = false;
+        Scan.Settings.HardwareAccelerationMode = VDF.Core.FFTools.FFHardwareAccelerationMode.none;
+        Scan.Settings.CustomFFArguments = string.Empty;
+    }
+}

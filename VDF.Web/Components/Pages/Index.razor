@@ -141,7 +141,9 @@ else {
             @if (Scan.State == ScanState.Done || Scan.State == ScanState.Aborted || Scan.State == ScanState.Error) {
                 <button @onclick="Scan.Reset">Reset</button>
             }
-            <button @onclick="SaveSettings" title="Save current settings to disk">Save settings</button>
+            <button @onclick="SavePaths" title="Save current paths to disk">Save paths</button>
+            <button @onclick="ClearPaths" title="Clear all include and exclude paths">Clear paths</button>
+            <button @onclick='() => Nav.NavigateTo("/settings")' title="Open settings">Settings</button>
             <button class="primary" @onclick="Scan.StartScanAndCompare"
                     disabled="@(Scan.OrderedIncludeList.Count == 0 || !FfmpegSetup.IsReady)"
                     title="@(!FfmpegSetup.IsReady ? "Waiting for FFmpeg setup to complete..." : null)">
@@ -152,14 +154,22 @@ else {
         @if (_saveMsg != null) {
             <p class="@(_saveFailed ? "aborted-msg" : "done-msg")">@_saveMsg</p>
         }
-        @if (Scan.State == ScanState.Done) {
-            <p class="done-msg">Scan complete — <a href="/results">view @Scan.Duplicates.Count result(s)</a></p>
-        }
         @if (Scan.State == ScanState.Aborted) {
             <p class="aborted-msg">Scan was stopped.</p>
         }
 
     </section>
+
+    @if (Scan.State == ScanState.Done) {
+        <div style="margin-top:24px; padding:40px 32px; text-align:center; background:#f0fdf4; border:3px solid #86efac; border-radius:14px;">
+            <div style="font-size:36px; font-weight:800; color:#16a34a; margin-bottom:8px;">Scan Complete!</div>
+            <div style="font-size:20px; color:#374151; margin-bottom:28px;">@Scan.Duplicates.Count duplicate group(s) found</div>
+            <a href="/results"
+               style="display:inline-block; padding:20px 56px; background:#16a34a; color:#fff; font-size:22px; font-weight:700; border-radius:12px; text-decoration:none; cursor:pointer;">
+                Take me to the Results
+            </a>
+        </div>
+    }
 }
 </div>
 
@@ -333,15 +343,23 @@ else {
         _browserOpen = false;
     }
 
-    // ── Settings
-    void SaveSettings() {
+    // ── Paths
+    void SavePaths() {
         bool ok = Scan.SaveSettings();
-        _saveMsg = ok ? "Settings saved." : "Failed to save settings.";
+        _saveMsg = ok ? "Paths saved." : "Failed to save paths.";
         _saveFailed = !ok;
         _ = Task.Delay(3000).ContinueWith(_ => InvokeAsync(() => {
             _saveMsg = null;
             StateHasChanged();
         }));
+    }
+
+    void ClearPaths() {
+        Scan.OrderedIncludeList.Clear();
+        Scan.Settings.IncludeList.Clear();
+        Scan.Settings.BlackList.Clear();
+        _newInclude = string.Empty;
+        _newExclude = string.Empty;
     }
 
     static string FormatEta(TimeSpan eta) =>
