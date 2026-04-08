@@ -17,10 +17,15 @@ The core engine (VDF.Core) is unchanged — all scanning, hashing, and perceptua
 | No folder ordering | Configurable main folder (leftmost column) |
 | No color pairing | Color-coded matching metadata values |
 | Generic auto-select | Smart Select per group + global |
+| Settings all on one page | Per-section save and reset-to-defaults |
 
 ---
 
-## Screenshot
+## Screenshots
+
+![Scan page](docs/screenshot-scan.jpg)
+
+![Settings page](docs/screenshot-settings.jpg)
 
 ![Results page](docs/screenshot.jpg)
 
@@ -52,17 +57,27 @@ Auto-flag files by criteria, per group or globally — all modes clear the previ
 **Global (toolbar dropdown):**
 - Lowest quality (multi-criteria: duration → resolution → bitrate → fps → audio bitrate)
 - Smallest file / Oldest / Newest
+- Shortest duration / Longest duration
 - 100% equal groups — flags all but one in perfectly identical groups
-- **No audio track** — flags every video in the results that has no audio stream
+- **No audio track** — flags every video that has no audio stream; skips groups where all files lack audio
 - Invert selection / Deselect all
 
 **Per group (each card header):**
 - Lowest / Highest resolution
 - Smallest / Largest file
 - Shortest / Longest duration
-- **No audio track** — flags the file in that group with no audio stream
+- **No audio track** — flags the file in that group with no audio stream; does nothing if every file in the group lacks audio (no good copy to compare against)
 
-The No Audio Track option is useful when one version of a file is missing its audio entirely — it finds it instantly without manual inspection.
+### Scan page
+
+- **Save paths / Clear paths** — save your include and exclude folders to disk, or clear them all in one click
+- **Settings shortcut** — quick link to Settings page right from the Scan tab
+- **Scan complete banner** — large, prominent banner showing how many duplicate groups were found with a big "Take me to the Results" button
+
+### Settings page
+
+- **Per-section Save and Default Values** — Similarity, Scanning, and FFmpeg sections each have their own Save Settings and Default Values buttons
+- Default Values resets only that section's fields back to factory defaults — you still need to click Save Settings to persist the change
 
 ### Deletion controls
 
@@ -77,7 +92,7 @@ The No Audio Track option is useful when one version of a file is missing its au
 - **Clear Resolved** — removes groups where all but one file has been deleted (no more clutter)
 - **Complete and Clear** — dismiss a resolved group without deleting anything
 - **Skip** — same as Complete and Clear
-- **Beep + auto-redirect** — plays a tone and navigates to Results automatically when a scan finishes (toggle in Settings)
+- **Beep on scan complete** — plays a tone when a scan finishes (toggle in Settings)
 
 ### Everything else
 
@@ -121,7 +136,7 @@ The first time you run the app, it needs to download FFmpeg (the tool it uses to
 
 1. On the **Scan** tab, click **Browse** and select a folder to scan. You can add multiple folders.
    - The first folder you add becomes the **Main folder** — its files always appear on the left in results.
-2. Click **Start Scan** and wait. When it finishes, the app beeps and takes you to Results automatically.
+2. Click **Start Scan** and wait. When it finishes, the app beeps and shows a banner with a button to view results.
 
 ### Reviewing results
 
